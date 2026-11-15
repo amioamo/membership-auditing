@@ -15,6 +15,31 @@ def _torch():
     return torch, nn
 
 
+def build_discriminator(base_channels: int = 64):
+    """Convolutional discriminator for a 32×32 RGB image."""
+    torch, nn = _torch()
+
+    class Discriminator32(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Conv2d(3, base_channels, 4, 2, 1, bias=False),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv2d(base_channels, base_channels * 2, 4, 2, 1, bias=False),
+                nn.BatchNorm2d(base_channels * 2),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv2d(base_channels * 2, base_channels * 4, 4, 2, 1, bias=False),
+                nn.BatchNorm2d(base_channels * 4),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv2d(base_channels * 4, 1, 4, 1, 0, bias=False),
+            )
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return self.net(x).view(x.shape[0])
+
+    return Discriminator32()
+
+
 def build_generator(latent_dim: int = 128, base_channels: int = 64):
     """Convolutional generator from a latent vector to a 32×32 RGB image in [-1, 1]."""
     torch, nn = _torch()

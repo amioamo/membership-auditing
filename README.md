@@ -41,6 +41,27 @@ python scripts/membership_scores.py ratio --victim VICTIM.npy --reference REFS.n
 
 Language-model scores require PyTorch and Transformers. A reference matrix has one row per reference classifier.
 
+## Protocol
+
+Training seeds are `0`, `1`, and `2`. For images and text, the private subset is drawn with NumPy seed `100 + seed` and the complement is the holdout. Logistic regression instead permutes the Adult table with `seed` itself. The wide residual network mixes a fixed label into its training and evaluation seeds; `python scripts/reproduce.py splits` prints those values.
+
+| Setting | Private size | Non-members | Training |
+|---|---:|---|---|
+| Generator | 500 (also 1000, 5000) | all 10,000 CIFAR-10 test images | 20,000 hinge steps, batch 128, then 20,000 synthetic images |
+| Language model | 512 (also 128, 256) | 500 test texts | 640 steps, length 256, from the public `gpt2` checkpoint |
+| Logistic regression | 2,000 | the next 15,000 rows | 500 iterations |
+| Classifier | 25,000 | 5,000 test images, and 5,000 members | 100 epochs; four reference models on the holdout |
+
+```bash
+python scripts/reproduce.py splits --setting generator --seed 0
+python scripts/reproduce.py generator --data-root DATA --seed 0 --out generator.pt --scores scores.npz --download --score
+python scripts/reproduce.py language --data-root DATA --seed 0 --out model --scores scores.npz
+python scripts/reproduce.py logistic --seed 0 --scores scores.npz
+python scripts/reproduce.py classifier --data-root DATA --seed 0 --scores scores.npz --download
+```
+
+Generator sampling needs PyTorch. Image settings also need torchvision, the language-model setting needs Transformers, and logistic regression needs scikit-learn. `--steps` and `--epochs` shorten a run without changing the split.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).
