@@ -280,6 +280,7 @@ def _classifier(args: argparse.Namespace) -> None:
         epochs=args.epochs,
         device=args.device,
     )
+    # The saved member scores are this evaluation sample. Training still uses every private image.
     member_index = choose(private, int(cfg["member_eval_size"]), int(drawn["member_eval"]))
     nonmember_index = choose(np.arange(len(test_set)), int(cfg["nonmember_size"]), int(drawn["nonmember_eval"]))
     victim_member = class_probability(victim, _loader(train_set, member_index, train=False))

@@ -25,7 +25,7 @@ Sampling requires PyTorch.
 Scores are computed from caller-supplied embeddings, text, or class probabilities. A larger value is stronger membership evidence. The sign is fixed in the score definition. For a language-model loss or an NLL gap, pass `--negate` before comparing the score with an audit threshold. Logistic regression uses the negated training negative log-likelihood, which equals the log-probability of the true label.
 
 - Max cosine is the highest cosine similarity between a query embedding and embeddings of synthetic images.
-- Sequence NLL is the mean token cross-entropy under a causal language model.
+- Sequence NLL is the mean token cross-entropy under a causal language model. The NLL commands truncate at 256 tokens, the same length used to fine-tune GPT-2.
 - The NLL gap subtracts a fixed reference model's NLL from the audited model's NLL.
 - Binary NLL is the negative log-likelihood of the true binary label. The audit score for logistic regression is its negation, saved by `reproduce.py logistic` as `member` and `nonmember`. `log-prob` computes that same quantity.
 - The likelihood ratio is the audited classifier's log probability of the true class minus the log of the mean probability under the reference classifiers.
@@ -48,9 +48,11 @@ Training seeds are `0`, `1`, and `2`. For images and text, the private subset is
 | Setting | Private size | Non-members | Training |
 |---|---:|---|---|
 | Generator | 500 (also 1000, 5000) | all 10,000 CIFAR-10 test images | 20,000 hinge steps, batch 128, then 20,000 synthetic images |
-| Language model | 512 (also 128, 256) | 500 test texts | 640 steps, length 256, from the public `gpt2` checkpoint |
+| Language model | 512 (also 128, 256) | 500 test texts | 640 steps, each text truncated to 256 tokens, from the public `gpt2` checkpoint |
 | Logistic regression | 2,000 | the next 15,000 rows | 500 iterations |
-| Classifier | 25,000 | 5,000 test images, and 5,000 members | 100 epochs; four reference models on the holdout |
+| Classifier | 25,000 training images | 5,000 test images; member scores are a fixed sample of 5,000 training images | 100 epochs; four reference models on the holdout |
+
+The language-model private sizes 128 and 256 are training-set sizes. Token truncation stays at 256 in every size. The classifier's saved member scores are that 5,000-image evaluation sample. The paper's member census for this model is the census of those scored members.
 
 ```bash
 python scripts/reproduce.py splits --setting generator --seed 0

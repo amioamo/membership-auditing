@@ -62,6 +62,7 @@ SETTINGS: dict[str, dict[str, Any]] = {
         "population_size": 50_000,
         "n_private": 25_000,
         "nonmembers": "CIFAR-10 test images",
+        # Scored member census. The model still trains on n_private images.
         "member_eval_size": 5000,
         "nonmember_size": 5000,
         "reference_models": 4,

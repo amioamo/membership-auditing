@@ -75,7 +75,7 @@ def main() -> None:
     nll.add_argument("--model", required=True)
     nll.add_argument("--texts", required=True)
     nll.add_argument("--out", required=True)
-    nll.add_argument("--max-length", type=int, default=128)
+    nll.add_argument("--max-length", type=int, default=256)
     nll.add_argument("--batch-size", type=int, default=16)
     nll.add_argument("--negate", action="store_true")
 
@@ -84,7 +84,7 @@ def main() -> None:
     gap.add_argument("--reference", required=True)
     gap.add_argument("--texts", required=True)
     gap.add_argument("--out", required=True)
-    gap.add_argument("--max-length", type=int, default=128)
+    gap.add_argument("--max-length", type=int, default=256)
     gap.add_argument("--batch-size", type=int, default=16)
     gap.add_argument("--negate", action="store_true")
 
