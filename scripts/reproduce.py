@@ -217,7 +217,6 @@ def _language(args: argparse.Namespace) -> None:
 def _logistic(args: argparse.Namespace) -> None:
     from sklearn.compose import ColumnTransformer
     from sklearn.datasets import fetch_openml
-    from sklearn.pipeline import Pipeline
     from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
     cfg = SETTINGS["logistic"]
@@ -227,22 +226,16 @@ def _logistic(args: argparse.Namespace) -> None:
     private, holdout = table_split(len(labels), int(cfg["n_private"]), int(cfg["holdout_size"]), args.seed)
     numeric = features.select_dtypes(include=[np.number]).columns.tolist()
     categorical = [column for column in features.columns if column not in numeric]
-    model = Pipeline(
+    preprocessor = ColumnTransformer(
         [
-            (
-                "pre",
-                ColumnTransformer(
-                    [
-                        ("num", StandardScaler(), numeric),
-                        ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical),
-                    ]
-                ),
-            ),
+            ("num", StandardScaler(), numeric),
+            ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical),
         ]
     )
-    transformed = model.fit_transform(features)
-    fitted, member_probability = fit_logistic(transformed[private], labels[private], seed=args.seed)
-    holdout_probability = fitted.predict_proba(transformed[holdout])[:, 1]
+    private_features = preprocessor.fit_transform(features.iloc[private])
+    holdout_features = preprocessor.transform(features.iloc[holdout])
+    fitted, member_probability = fit_logistic(private_features, labels[private], seed=args.seed)
+    holdout_probability = fitted.predict_proba(holdout_features)[:, 1]
     scores = logistic_scores(member_probability, labels[private], holdout_probability, labels[holdout])
     occupation = features.iloc[holdout]["occupation"].astype("string").fillna("Unknown").to_numpy()
     values, counts = np.unique(occupation, return_counts=True)
