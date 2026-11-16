@@ -22,12 +22,12 @@ Sampling requires PyTorch.
 
 ## Scores
 
-Scores are computed from caller-supplied embeddings, text, or class probabilities. A larger value is stronger membership evidence, except training negative log-likelihood, which is kept as a loss. For a language-model loss or an NLL gap, pass `--negate` before comparing the score with an audit threshold.
+Scores are computed from caller-supplied embeddings, text, or class probabilities. A larger value is stronger membership evidence. The sign is fixed in the score definition. For a language-model loss or an NLL gap, pass `--negate` before comparing the score with an audit threshold. Logistic regression uses the negated training negative log-likelihood, which equals the log-probability of the true label.
 
 - Max cosine is the highest cosine similarity between a query embedding and embeddings of synthetic images.
 - Sequence NLL is the mean token cross-entropy under a causal language model.
 - The NLL gap subtracts a fixed reference model's NLL from the audited model's NLL.
-- Binary NLL is the negative log-likelihood of the true binary label. The matching log-probability score negates it.
+- Binary NLL is the negative log-likelihood of the true binary label. The audit score for logistic regression is its negation, saved by `reproduce.py logistic` as `member` and `nonmember`. `log-prob` computes that same quantity.
 - The likelihood ratio is the audited classifier's log probability of the true class minus the log of the mean probability under the reference classifiers.
 
 ```bash

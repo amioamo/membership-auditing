@@ -177,14 +177,15 @@ def fit_logistic(features, labels, seed: int = 0):
 
 
 def logistic_scores(member_probability, member_labels, holdout_probability, holdout_labels) -> dict[str, np.ndarray]:
-    """Training negative log-likelihood and true-label log-probability."""
-    member_nll = binary_nll(member_probability, member_labels)
-    holdout_nll = binary_nll(holdout_probability, holdout_labels)
+    """Low-loss logistic score: negated training NLL, equal to the true-label log-probability.
+
+    The sign is fixed by this definition. Larger values are stronger membership evidence.
+    """
+    member = -binary_nll(member_probability, member_labels)
+    holdout = -binary_nll(holdout_probability, holdout_labels)
     return {
-        "nll_member": member_nll,
-        "nll_nonmember": holdout_nll,
-        "logprob_member": -member_nll,
-        "logprob_nonmember": -holdout_nll,
+        "member": member,
+        "nonmember": holdout,
     }
 
 

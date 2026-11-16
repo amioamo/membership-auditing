@@ -94,7 +94,7 @@ def extremize_linear_over_weight_class(
         method="highs",
     )
     if not res.success:
-        return float(c @ w0)
+        raise RuntimeError("mixture weight linear program failed")
     return float(c @ res.x[:K])
 
 
@@ -137,7 +137,7 @@ def recover_extremal_weight(
         method="highs",
     )
     if not res.success:
-        return w0.copy()
+        raise RuntimeError("mixture weight linear program failed")
     w = np.maximum(res.x[:K], 0.0)
     s = float(w.sum())
     return w / s if s > 0 else w0.copy()
@@ -217,10 +217,10 @@ def feasible_weights(
     return cands
 
 
-def _evaluation_grid(scores: np.ndarray, max_points: int = 2000) -> np.ndarray:
-    """Grid of unique scores (subsampled if needed) for exact LP on empirical CDFs."""
+def _evaluation_grid(scores: np.ndarray, max_points: int | None = None) -> np.ndarray:
+    """Every distinct score. An explicit ``max_points`` only reproduces a retired cap."""
     grid = np.unique(np.asarray(scores, dtype=float))
-    if grid.size <= max_points:
+    if max_points is None or grid.size <= max_points:
         return grid
     idx = np.linspace(0, grid.size - 1, max_points).astype(int)
     return grid[idx]
@@ -238,6 +238,9 @@ def analyze_structured_class(
     """
     Construct F from subgroup mixtures and compute exact LP endpoints:
       rho_F, T_struct*, T_Kol*(rho_F), T_Kol*(gamma).
+
+    The structured target and the induced radius use every distinct
+    non-member score. A failed weight program raises.
     """
     rng = rng or np.random.default_rng(0)
     labels = remap_labels(labels)
